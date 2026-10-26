@@ -1,0 +1,456 @@
+{% extends "base.html" %}
+
+{% block title %}TruthLens — Multilingual News Analysis & Media Literacy Platform{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto mt-6 px-4 space-y-12">
+
+    <!-- HERO SECTION: Project Overview & Real Journalism Photography -->
+    <section class="bg-white border border-slate-200 rounded-3xl p-6 lg:p-10 shadow-sm">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+            <!-- Left Column: Project Introduction -->
+            <div class="lg:col-span-7 space-y-5">
+                <div class="flex flex-wrap gap-2 items-center">
+                    <span class="inline-flex items-center gap-1.5 bg-blue-50 text-blue-700 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+                        <i data-lucide="shield-check" class="w-3.5 h-3.5"></i> B.Tech Final-Year Capstone Project
+                    </span>
+                    <span class="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 text-xs font-semibold px-2.5 py-1 rounded-full">
+                        <i data-lucide="check-circle" class="w-3 h-3"></i> Zero-Fabrication Guarantee
+                    </span>
+                    <span class="inline-flex items-center gap-1 bg-slate-100 text-slate-700 text-xs font-mono px-2.5 py-1 rounded-full">
+                        Port 8765
+                    </span>
+                </div>
+
+                <h1 class="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 tracking-tight leading-[1.15]">
+                    Truth<span class="text-blue-600">Lens</span>
+                </h1>
+                <p class="text-lg font-semibold text-slate-700 leading-snug">
+                    Multilingual News Analysis, Propaganda Detection & Media Literacy Platform
+                </p>
+
+                <p class="text-sm text-slate-600 leading-relaxed max-w-xl">
+                    TruthLens is an AI-powered media literacy application engineered to help citizens, students, and researchers critically evaluate online news, viral forwards, and social media claims. Instead of issuing arbitrary "fake" or "real" labels, TruthLens breaks down each factual statement, verifies exact supporting passages, detects persuasive manipulation, and cross-references empirical evidence across <strong>English</strong>, <strong>Hindi</strong>, <strong>Telugu</strong>, <strong>Tamil</strong>, and <strong>Kannada</strong>.
+                </p>
+
+                <!-- Quick Action Buttons -->
+                <div class="flex flex-wrap gap-3 pt-2">
+                    <a href="#analysis-studio" class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm rounded-xl shadow-sm transition flex items-center gap-2">
+                        <i data-lucide="sparkles" class="w-4 h-4"></i> Start Analyzing News
+                    </a>
+                    <a href="{{ url_for('dashboard') }}" class="px-5 py-3 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-sm rounded-xl shadow-sm transition flex items-center gap-2">
+                        <i data-lucide="layout-dashboard" class="w-4 h-4 text-blue-600"></i> Analytics Dashboard
+                    </a>
+                    <a href="{{ url_for('history_page') }}" class="px-5 py-3 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-sm rounded-xl shadow-sm transition flex items-center gap-2">
+                        <i data-lucide="history" class="w-4 h-4 text-slate-500"></i> Saved History
+                    </a>
+                </div>
+
+                <!-- Language Badges -->
+                <div class="pt-3 border-t border-slate-100 flex items-center gap-3 text-xs text-slate-500 flex-wrap">
+                    <span class="font-bold text-slate-700 uppercase tracking-wider">Supported Languages:</span>
+                    <span class="bg-slate-100 text-slate-700 font-medium px-2 py-0.5 rounded">English</span>
+                    <span class="bg-slate-100 text-slate-700 font-medium px-2 py-0.5 rounded">हिंदी (Hindi)</span>
+                    <span class="bg-slate-100 text-slate-700 font-medium px-2 py-0.5 rounded">తెలుగు (Telugu)</span>
+                    <span class="bg-slate-100 text-slate-700 font-medium px-2 py-0.5 rounded">தமிழ் (Tamil)</span>
+                    <span class="bg-slate-100 text-slate-700 font-medium px-2 py-0.5 rounded">ಕನ್ನಡ (Kannada)</span>
+                </div>
+            </div>
+
+            <!-- Right Column: Real Journalism / Newsroom Photography -->
+            <div class="lg:col-span-5 space-y-3">
+                <div class="relative rounded-2xl overflow-hidden border border-slate-200 shadow-sm group">
+                    <img 
+                        src="{{ url_for('static', filename='images/newsroom_investigation.jpg') }}" 
+                        alt="Real newsroom desk with daily newspapers, notebook, glasses and pen" 
+                        class="w-full h-80 object-cover group-hover:scale-105 transition duration-500"
+                    >
+                    <div class="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-slate-900/20 to-transparent flex items-end p-5">
+                        <div class="text-white space-y-1">
+                            <span class="text-[10px] font-bold uppercase tracking-widest text-blue-300 block">Authentic News Verification</span>
+                            <p class="text-xs font-medium text-slate-200 leading-tight">
+                                Grounding media analysis in documented reporting, archival records, and empirical facts.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex items-center justify-between text-[11px] text-slate-400 px-1">
+                    <span>Editorial Media Desk & Documentation</span>
+                    <span>Offline & AI Capable</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION: THE 4 CORE MISINFORMATION CHALLENGES SOLVED -->
+    <section class="space-y-4">
+        <div class="space-y-1 text-center max-w-2xl mx-auto">
+            <span class="text-xs font-bold text-blue-600 uppercase tracking-widest">Why TruthLens Was Built</span>
+            <h2 class="text-2xl font-bold text-slate-900 tracking-tight">Solving 4 Critical Media Literacy Problems</h2>
+            <p class="text-xs text-slate-500">Addressing the growing wave of unverified claims, emotional manipulation, and language barriers.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <!-- Problem 1 -->
+            <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-2 flex flex-col justify-between">
+                <div>
+                    <div class="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center mb-3">
+                        <i data-lucide="alert-octagon" class="w-5 h-5"></i>
+                    </div>
+                    <h3 class="text-sm font-bold text-slate-900">1. Viral Misinformation</h3>
+                    <p class="text-xs text-slate-600 leading-relaxed mt-1">
+                        Sensational rumors and unsubstantiated claims spread rapidly across WhatsApp and social platforms without evidence checks.
+                    </p>
+                </div>
+                <div class="pt-3 border-t border-slate-100 text-[11px] text-slate-500">
+                    <strong class="text-slate-700">TruthLens Fix:</strong> Extracts checkable empirical claims and connects them to exact article passages.
+                </div>
+            </div>
+
+            <!-- Problem 2 -->
+            <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-2 flex flex-col justify-between">
+                <div>
+                    <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center mb-3">
+                        <i data-lucide="zap" class="w-5 h-5"></i>
+                    </div>
+                    <h3 class="text-sm font-bold text-slate-900">2. Emotional Manipulation</h3>
+                    <p class="text-xs text-slate-600 leading-relaxed mt-1">
+                        Phrases like "Urgent alert!" or "Share before it's deleted" manipulate fear and urgency to bypass readers' critical faculties.
+                    </p>
+                </div>
+                <div class="pt-3 border-t border-slate-100 text-[11px] text-slate-500">
+                    <strong class="text-slate-700">TruthLens Fix:</strong> Identifies persuasive language devices with quotes and explains likely reader impact.
+                </div>
+            </div>
+
+            <!-- Problem 3 -->
+            <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-2 flex flex-col justify-between">
+                <div>
+                    <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mb-3">
+                        <i data-lucide="languages" class="w-5 h-5"></i>
+                    </div>
+                    <h3 class="text-sm font-bold text-slate-900">3. Language Barriers</h3>
+                    <p class="text-xs text-slate-600 leading-relaxed mt-1">
+                        Most fact-checking tools serve only English, leaving readers of regional Indian languages vulnerable to local misdirection.
+                    </p>
+                </div>
+                <div class="pt-3 border-t border-slate-100 text-[11px] text-slate-500">
+                    <strong class="text-slate-700">TruthLens Fix:</strong> Native processing for English, Hindi, Telugu, Tamil, and Kannada.
+                </div>
+            </div>
+
+            <!-- Problem 4 -->
+            <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-2 flex flex-col justify-between">
+                <div>
+                    <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-3">
+                        <i data-lucide="file-search" class="w-5 h-5"></i>
+                    </div>
+                    <h3 class="text-sm font-bold text-slate-900">4. Unverifiable Claims</h3>
+                    <p class="text-xs text-slate-600 leading-relaxed mt-1">
+                        Readers often cannot distinguish between claims that are demonstrably false versus claims that simply lack sufficient evidence.
+                    </p>
+                </div>
+                <div class="pt-3 border-t border-slate-100 text-[11px] text-slate-500">
+                    <strong class="text-slate-700">TruthLens Fix:</strong> Never labels a claim false without proof; transparently marks unverified statements.
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION: INTERACTIVE ANALYSIS STUDIO (Analyze a News Story) -->
+    <section id="analysis-studio" class="scroll-mt-6 space-y-4">
+        <div class="space-y-1">
+            <div class="flex items-center gap-2">
+                <i data-lucide="sparkles" class="w-6 h-6 text-blue-600"></i>
+                <h2 class="text-2xl font-bold text-slate-900 tracking-tight">Analyze a News Story</h2>
+            </div>
+            <p class="text-sm text-slate-500">
+                Submit an article link or paste news content in English, Hindi, Telugu, Tamil, or Kannada to generate an instant 10-section media literacy report.
+            </p>
+        </div>
+
+        <!-- Main Analysis Card -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+            <!-- Input Method Segmented Control / Tabs -->
+            <div class="flex bg-slate-100 p-1 rounded-xl text-xs font-semibold max-w-md mb-6">
+                <button type="button" id="tabTextBtn" onclick="switchInputTab('text')" class="flex-1 py-2.5 rounded-lg bg-white shadow-sm text-slate-800 transition flex items-center justify-center gap-2">
+                    <i data-lucide="file-text" class="w-4 h-4 text-blue-600"></i> Paste Article Text / Social Post
+                </button>
+                <button type="button" id="tabUrlBtn" onclick="switchInputTab('url')" class="flex-1 py-2.5 rounded-lg text-slate-500 hover:text-slate-800 transition flex items-center justify-center gap-2">
+                    <i data-lucide="link" class="w-4 h-4"></i> News Article URL
+                </button>
+            </div>
+
+            <form id="analysisForm" onsubmit="handleAnalysisSubmit(event)" class="space-y-4">
+                <!-- Hidden field for input type -->
+                <input type="hidden" name="source_type" id="sourceTypeInput" value="text">
+
+                <!-- Section 1: Pasted Text Input (Default Active) -->
+                <div id="textInputSection" class="space-y-4">
+                    <div>
+                        <label for="customTitle" class="text-xs font-semibold text-slate-700 block mb-1">
+                            Story Headline or Title <span class="text-slate-400 font-normal">(Optional)</span>
+                        </label>
+                        <input 
+                            type="text" 
+                            id="customTitle" 
+                            name="custom_title" 
+                            class="w-full px-3.5 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition" 
+                            placeholder="e.g. Health Ministry issues alert on sudden outbreak..."
+                        >
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <label for="pastedText" class="text-xs font-semibold text-slate-700">
+                                Full Article Text or Forwarded Message <span class="text-red-500">*</span>
+                            </label>
+                            <span class="text-xs text-slate-400 font-mono" id="charCounter">0 / 25,000 characters</span>
+                        </div>
+                        <textarea 
+                            id="pastedText" 
+                            name="content_text" 
+                            rows="8" 
+                            class="w-full px-3.5 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 font-sans transition" 
+                            placeholder="Paste news story, blog excerpt, press release, or viral social media message here..."
+                            oninput="updateCharCount()"
+                        ></textarea>
+                    </div>
+                </div>
+
+                <!-- Section 2: URL Input -->
+                <div id="urlInputSection" class="space-y-4 hidden">
+                    <div>
+                        <label for="articleUrl" class="text-xs font-semibold text-slate-700 block mb-1">
+                            News Article Web Address (HTTP/HTTPS) <span class="text-red-500">*</span>
+                        </label>
+                        <input 
+                            type="url" 
+                            id="articleUrl" 
+                            name="content_url" 
+                            class="w-full px-3.5 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition" 
+                            placeholder="https://example.com/news/2026/policy-update.html"
+                        >
+                        <p class="text-[11px] text-slate-400 mt-1 flex items-center gap-1">
+                            <i data-lucide="shield" class="w-3.5 h-3.5 text-blue-500"></i> TruthLens employs SSRF protections: internal network IP ranges and localhost addresses are prohibited.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Language Selection & Submission Toolbar -->
+                <div class="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 pt-2 border-t border-slate-100">
+                    <div class="flex items-center gap-2">
+                        <label for="languageSelect" class="text-xs font-semibold text-slate-600 whitespace-nowrap">Analysis Language:</label>
+                        <select id="languageSelect" name="selected_language" class="px-3 py-2 text-xs font-medium border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-slate-700">
+                            <option value="auto">Auto-Detect Language</option>
+                            <option value="en">English</option>
+                            <option value="hi">Hindi (हिंदी)</option>
+                            <option value="te">Telugu (తెలుగు)</option>
+                            <option value="ta">Tamil (தமிழ்)</option>
+                            <option value="kn">Kannada (ಕನ್ನಡ)</option>
+                            <option value="pa">Punjabi (ਪੰਜਾਬੀ)</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <button type="submit" id="analyzeSubmitBtn" class="w-full sm:w-auto px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded-xl shadow-sm transition flex items-center justify-center gap-2">
+                            <i data-lucide="sparkles" class="w-4 h-4"></i>
+                            <span class="btn-text">Start News Analysis</span>
+                            <span class="btn-spinner hidden" id="submitSpinner"></span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Dynamic Live Progress Box -->
+                <div id="analysisProgressBox" class="hidden bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-2">
+                    <div class="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden">
+                        <div class="bg-blue-600 h-2.5 rounded-full transition-all duration-300" id="progressBarFill" style="width: 15%"></div>
+                    </div>
+                    <p class="text-xs text-slate-600 text-center font-medium" id="progressStatusText">Validating inputs and preparing extraction...</p>
+                </div>
+
+                <!-- Error Banner -->
+                <div id="formErrorMessage" class="p-3 bg-red-50 border border-red-200 text-xs text-red-700 rounded-xl hidden"></div>
+            </form>
+
+            <!-- Pre-loaded Sample Demonstration Loaders for Viva & Testing -->
+            <div class="mt-6 pt-5 border-t border-slate-100">
+                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-2.5">
+                    Try a pre-loaded demonstration news story:
+                </span>
+                <div class="flex flex-wrap gap-2">
+                    <button type="button" class="text-xs font-medium px-3 py-1.5 bg-slate-50 border border-slate-200 hover:bg-slate-100 rounded-lg text-slate-700 transition" onclick="loadSampleText('en')">
+                        🇬🇧 English Sample (Health Claims)
+                    </button>
+                    <button type="button" class="text-xs font-medium px-3 py-1.5 bg-slate-50 border border-slate-200 hover:bg-slate-100 rounded-lg text-slate-700 transition" onclick="loadSampleText('hi')">
+                        🇮🇳 Hindi (हिंदी - कृषि नीति)
+                    </button>
+                    <button type="button" class="text-xs font-medium px-3 py-1.5 bg-slate-50 border border-slate-200 hover:bg-slate-100 rounded-lg text-slate-700 transition" onclick="loadSampleText('te')">
+                        🇮🇳 Telugu (తెలుగు - పారిశ్రామిక ప్రకటన)
+                    </button>
+                    <button type="button" class="text-xs font-medium px-3 py-1.5 bg-slate-50 border border-slate-200 hover:bg-slate-100 rounded-lg text-slate-700 transition" onclick="loadSampleText('ta')">
+                        🇮🇳 Tamil (தமிழ் - நலத்திட்ட அறிக்கை)
+                    </button>
+                    <button type="button" class="text-xs font-medium px-3 py-1.5 bg-slate-50 border border-slate-200 hover:bg-slate-100 rounded-lg text-slate-700 transition" onclick="loadSampleText('kn')">
+                        🇮🇳 Kannada (ಕನ್ನಡ - ಕೃಷಿ ಸಹಾಯಧನ)
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION: HOW TRUTHLENS WORKS (REAL FACT-CHECKING RESEARCH PHOTO) -->
+    <section class="bg-white border border-slate-200 rounded-3xl p-6 lg:p-10 shadow-sm space-y-8">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+            <!-- Left Side: Real Research Image -->
+            <div class="lg:col-span-5">
+                <div class="relative rounded-2xl overflow-hidden border border-slate-200 shadow-sm group">
+                    <img 
+                        src="{{ url_for('static', filename='images/factcheck_research.jpg') }}" 
+                        alt="Fact-checking and data corroboration research on desk" 
+                        class="w-full h-80 object-cover group-hover:scale-105 transition duration-500"
+                    >
+                    <div class="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-transparent to-transparent flex items-end p-5">
+                        <div class="text-white space-y-1">
+                            <span class="text-[10px] font-bold uppercase tracking-widest text-emerald-300 block">Rigorous Analytical Methodology</span>
+                            <p class="text-xs font-medium text-slate-200">
+                                Separating objective assertions from narrative framing and stylistic rhetoric.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Side: The 3-Step Verification Pipeline -->
+            <div class="lg:col-span-7 space-y-4">
+                <span class="text-xs font-bold text-blue-600 uppercase tracking-widest">End-to-End Technical Pipeline</span>
+                <h2 class="text-2xl font-bold text-slate-900 tracking-tight">How TruthLens Analyzes Content</h2>
+                
+                <div class="space-y-4 pt-2">
+                    <div class="flex items-start gap-3.5">
+                        <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-700 font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">
+                            1
+                        </div>
+                        <div class="space-y-0.5">
+                            <h4 class="text-sm font-bold text-slate-900">Ingestion & Security Sanitization</h4>
+                            <p class="text-xs text-slate-600 leading-relaxed">
+                                Content is parsed via URL extraction or pasted text. Built-in SSRF protections block private IP ranges, while clutter and advertisements are stripped cleanly.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-3.5">
+                        <div class="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">
+                            2
+                        </div>
+                        <div class="space-y-0.5">
+                            <h4 class="text-sm font-bold text-slate-900">Claim Extraction & Quotation Grounding</h4>
+                            <p class="text-xs text-slate-600 leading-relaxed">
+                                Individual factual claims are isolated and strictly linked to verbatim passages in the source text. Non-existent quotes and fabricated claims are rejected by validation filters.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-3.5">
+                        <div class="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">
+                            3
+                        </div>
+                        <div class="space-y-0.5">
+                            <h4 class="text-sm font-bold text-slate-900">Evidence Assessment & Transparent Reporting</h4>
+                            <p class="text-xs text-slate-600 leading-relaxed">
+                                Claims receive one of 5 plain-English verdicts with documented limitations. Stylistic persuasive devices and missing context are reported in a 3-tab interactive dashboard.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION: MEDIA & JOURNALISM GALLERY (REAL IMAGES) -->
+    <section class="space-y-4">
+        <div class="space-y-1 text-center max-w-2xl mx-auto">
+            <span class="text-xs font-bold text-blue-600 uppercase tracking-widest">Media Literacy in Practice</span>
+            <h2 class="text-2xl font-bold text-slate-900 tracking-tight">Preserving Information Integrity</h2>
+            <p class="text-xs text-slate-500">TruthLens bridges modern computational NLP with foundational journalistic standards.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Gallery Card 1 -->
+            <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm group">
+                <div class="h-48 overflow-hidden relative">
+                    <img 
+                        src="{{ url_for('static', filename='images/journalism_press.jpg') }}" 
+                        alt="Newspapers and printed press journalism" 
+                        class="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+                    >
+                    <div class="absolute inset-0 bg-gradient-to-t from-slate-900/60 to-transparent"></div>
+                    <span class="absolute bottom-3 left-4 text-xs font-bold text-white bg-slate-900/60 backdrop-blur-sm px-2.5 py-1 rounded">
+                        Investigative Print & Digital Journalism
+                    </span>
+                </div>
+                <div class="p-5 space-y-1.5">
+                    <h3 class="text-sm font-bold text-slate-900">Historical & Archival Corroboration</h3>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        Many deceptive stories recycle genuine historical footage from older protests and present it under false new dates. TruthLens cross-checks dates and flags chronological mismatches.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Gallery Card 2 -->
+            <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm group">
+                <div class="h-48 overflow-hidden relative">
+                    <img 
+                        src="{{ url_for('static', filename='images/media_broadcast.jpg') }}" 
+                        alt="Real press conference microphones and public interest broadcasting" 
+                        class="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+                    >
+                    <div class="absolute inset-0 bg-gradient-to-t from-slate-900/60 to-transparent"></div>
+                    <span class="absolute bottom-3 left-4 text-xs font-bold text-white bg-slate-900/60 backdrop-blur-sm px-2.5 py-1 rounded">
+                        Press Conferences & Official Inquiries
+                    </span>
+                </div>
+                <div class="p-5 space-y-1.5">
+                    <h3 class="text-sm font-bold text-slate-900">Distinguishing Attribution from Endorsement</h3>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        When an article quotes an official denying a rumor, TruthLens distinguishes the reported statement from an independent investigation, preserving nuanced fact-checking integrity.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION: B.TECH VIVA & COLLEGE PRESENTATION REFERENCE -->
+    <section class="bg-slate-50 border border-slate-200 rounded-3xl p-6 lg:p-8 space-y-6">
+        <div class="space-y-1">
+            <span class="text-xs font-bold text-blue-600 uppercase tracking-widest">Academic Defense & Viva Guide</span>
+            <h2 class="text-xl font-bold text-slate-900">Questions Frequently Asked in Capstone Evaluations</h2>
+            <p class="text-xs text-slate-500">Quick conceptual answers to explain your project architecture confidently during college viva.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+            <div class="bg-white border border-slate-200 rounded-xl p-4 space-y-2 shadow-sm">
+                <strong class="text-slate-900 text-sm block">Q1: Why not a simple "Fake" vs "Real" score?</strong>
+                <p class="text-slate-600 leading-relaxed">
+                    Binary labels are fundamentally flawed. Real news can contain sensational language, while false stories often incorporate factual dates. TruthLens breaks down each claim individually so readers understand exact nuances.
+                </p>
+            </div>
+
+            <div class="bg-white border border-slate-200 rounded-xl p-4 space-y-2 shadow-sm">
+                <strong class="text-slate-900 text-sm block">Q2: How does TruthLens prevent AI hallucination?</strong>
+                <p class="text-slate-600 leading-relaxed">
+                    Every extracted claim is programmatically checked against the source text. If a quote or sentence does not exist in the submitted article, validation filters discard it before rendering.
+                </p>
+            </div>
+
+            <div class="bg-white border border-slate-200 rounded-xl p-4 space-y-2 shadow-sm">
+                <strong class="text-slate-900 text-sm block">Q3: How does the offline mode function?</strong>
+                <p class="text-slate-600 leading-relaxed">
+                    When no API key is provided, TruthLens executes deterministic local rule-based NLP algorithms to extract genuine sentences and flag manipulative vocabulary completely offline on port 8765.
+                </p>
+            </div>
+        </div>
+    </section>
+
+</div>
+{% endblock %}

@@ -1,0 +1,15 @@
+# Exclude local environment secrets
+.env
+.env.local
+*.env
+
+# Exclude test cache and development artifacts
+.pytest_cache/
+tests/
+__pycache__/
+*.py[cod]
+*.zip
+
+# OS artifacts
+.DS_Store
+Thumbs.db

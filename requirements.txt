@@ -1,0 +1,23 @@
+# ==============================================================================
+# TruthLens - Core Dependencies (Pinned for Stability & Compatibility)
+# Python 3.11+ compatible
+# ==============================================================================
+
+# Web Framework
+Flask>=2.2.5,<3.1.0
+Werkzeug>=2.3.8,<3.1.0
+
+# HTTP Networking & Web Scraping
+requests>=2.31.0,<3.0.0
+beautifulsoup4>=4.9.3,<5.0.0
+soupsieve>=2.4.0
+
+# Environment Variable Management
+python-dotenv>=1.0.0
+
+# Google Gemini Official SDKs (Supports modern google-genai and legacy fallback)
+google-genai>=1.0.0
+google-generativeai>=0.8.0
+
+# Automated Testing
+pytest>=8.0.0

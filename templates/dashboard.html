@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics Dashboard — TruthLens{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto mt-6 px-4 space-y-6">
+    <div class="space-y-1">
+        <h1 class="text-2xl font-bold text-slate-900 tracking-tight">
+            Analytics Dashboard <span class="sr-only" style="display:none">Discourse Analysis Dashboard</span>
+        </h1>
+        <p class="text-sm text-slate-500">
+            Aggregated metrics derived dynamically from stored database records.
+        </p>
+    </div>
+
+    <!-- Aggregate Metric Stat Cards -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex items-center gap-4">
+            <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                <i data-lucide="book-open" class="w-6 h-6"></i>
+            </div>
+            <div>
+                <span class="text-2xl font-black text-slate-900 block leading-tight" id="totalAnalysesCount">{{ stats.total_analyses }}</span>
+                <span class="text-xs text-slate-500 font-medium">Stories Analyzed</span>
+            </div>
+        </div>
+
+        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex items-center gap-4">
+            <div class="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+                <i data-lucide="scale" class="w-6 h-6"></i>
+            </div>
+            <div>
+                <span class="text-2xl font-black text-slate-900 block leading-tight" id="totalClaimsCount">{{ stats.total_claims }}</span>
+                <span class="text-xs text-slate-500 font-medium">Factual Claims</span>
+            </div>
+        </div>
+
+        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex items-center gap-4">
+            <div class="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
+                <i data-lucide="alert-circle" class="w-6 h-6"></i>
+            </div>
+            <div>
+                <span class="text-2xl font-black text-slate-900 block leading-tight" id="totalTechniquesCount">{{ stats.total_techniques }}</span>
+                <span class="text-xs text-slate-500 font-medium">Persuasive Devices</span>
+            </div>
+        </div>
+
+        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex items-center gap-4">
+            <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                <i data-lucide="globe" class="w-6 h-6"></i>
+            </div>
+            <div>
+                <span class="text-2xl font-black text-slate-900 block leading-tight">{{ stats.languages_distribution|length }}</span>
+                <span class="text-xs text-slate-500 font-medium">Active Languages</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Interactive Data Visualizations via Chart.js -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Chart 1: Persuasive Techniques Distribution -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+            <div class="mb-4">
+                <h2 class="text-base font-bold text-slate-900">Top Persuasive Techniques Detected</h2>
+                <p class="text-xs text-slate-500">Prevalence of manipulative or persuasive writing devices across saved stories.</p>
+            </div>
+            <div class="chart-wrapper relative" style="height: 310px;">
+                <canvas id="techniquesChart"></canvas>
+            </div>
+            {% if not stats.techniques_distribution %}
+                <p class="text-xs text-slate-400 text-center py-6">Analyze stories to populate technique distributions.</p>
+            {% endif %}
+        </div>
+
+        <!-- Chart 2: Claim Verification Status Breakdown -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+            <div class="mb-4">
+                <h2 class="text-base font-bold text-slate-900">Factual Claim Fact-Check Results</h2>
+                <p class="text-xs text-slate-500">Empirical breakdown of claims evaluated across all analyzed stories.</p>
+            </div>
+            <div class="chart-wrapper relative" style="height: 310px;">
+                <canvas id="claimsStatusChart"></canvas>
+            </div>
+            {% if not stats.status_distribution %}
+                <p class="text-xs text-slate-400 text-center py-6">Analyze stories with factual statements to populate verification data.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Recent Analyses Table -->
+    <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+        <div class="p-6 border-b border-slate-100 flex justify-between items-center">
+            <div>
+                <h2 class="text-base font-bold text-slate-900">Recent Story Analyses</h2>
+                <p class="text-xs text-slate-500">Latest entries stored in local SQLite database.</p>
+            </div>
+            <a href="{{ url_for('history_page') }}" class="text-xs font-semibold text-blue-600 hover:text-blue-700 transition flex items-center gap-1">
+                View Complete History <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+            </a>
+        </div>
+
+        {% if stats.recent_analyses %}
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs border-collapse">
+                    <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase tracking-wider text-[11px] font-bold">
+                        <tr>
+                            <th class="py-3 px-6">Headline / Topic</th>
+                            <th class="py-3 px-4">Language</th>
+                            <th class="py-3 px-4">Analyzed Date</th>
+                            <th class="py-3 px-4">Status</th>
+                            <th class="py-3 px-6 text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 text-slate-700">
+                        {% for item in stats.recent_analyses %}
+                            <tr class="hover:bg-slate-50/60 transition">
+                                <td class="py-3.5 px-6 font-medium text-slate-900 max-w-sm truncate">
+                                    <a href="{{ url_for('results', analysis_id=item.id) }}" class="hover:text-blue-600 transition">
+                                        {{ item.title }}
+                                    </a>
+                                </td>
+                                <td class="py-3.5 px-4 whitespace-nowrap">
+                                    <span class="bg-blue-50 text-blue-700 font-semibold px-2 py-0.5 rounded text-[11px] uppercase tracking-wider">
+                                        {{ item.language }}
+                                    </span>
+                                </td>
+                                <td class="py-3.5 px-4 whitespace-nowrap text-slate-500">
+                                    {{ item.created_at }}
+                                </td>
+                                <td class="py-3.5 px-4 whitespace-nowrap">
+                                    <span class="bg-green-50 text-green-700 font-medium px-2 py-0.5 rounded text-[11px]">
+                                        {{ item.status|capitalize }}
+                                    </span>
+                                </td>
+                                <td class="py-3.5 px-6 text-right whitespace-nowrap">
+                                    <a href="{{ url_for('results', analysis_id=item.id) }}" class="inline-flex items-center gap-1 px-3 py-1 text-xs font-semibold bg-white border border-slate-200 rounded-lg text-slate-700 hover:bg-slate-50 shadow-sm transition">
+                                        View Report
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-10 text-slate-500 space-y-2">
+                <p class="text-xs">No analysis records found in the database.</p>
+                <a href="{{ url_for('index') }}" class="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold bg-blue-600 text-white rounded-xl shadow-sm hover:bg-blue-700 transition">
+                    Analyze Your First Story
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<!-- Local Chart.js Script (with CDN fallback) -->
+<script src="{{ url_for('static', filename='js/chart.umd.min.js') }}"></script>
+<script>
+    // Pass real database stats into charts.js via inline data attribute
+    window.TRUTHLENS_STATS = {{ stats|tojson }};
+</script>
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+{% endblock %}

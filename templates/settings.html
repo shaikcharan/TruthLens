@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block title %}Platform Configuration — TruthLens{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto mt-6 px-4 space-y-6">
+    <div class="space-y-1">
+        <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Platform Configuration & Status</h1>
+        <p class="text-sm text-slate-500">
+            Diagnostics, AI connectivity, SQLite storage location, and privacy parameters.
+        </p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Card 1: AI Engine Configuration -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col justify-between">
+            <div>
+                <h2 class="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
+                    <i data-lucide="cpu" class="w-5 h-5 text-blue-600"></i> Google Gemini Integration
+                </h2>
+                
+                <div class="space-y-3 text-xs border-b border-slate-100 pb-4 mb-4">
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-500 font-medium">API Key Status:</span>
+                        {% if api_configured %}
+                            <span class="bg-green-100 text-green-800 font-semibold px-2.5 py-0.5 rounded-full">{{ masked_api_key }}</span>
+                        {% else %}
+                            <span class="bg-amber-100 text-amber-800 font-semibold px-2.5 py-0.5 rounded-full">{{ masked_api_key }}</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-500 font-medium">Configured Model:</span>
+                        <code class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded font-mono">{{ model_name }}</code>
+                    </div>
+
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-500 font-medium">Environment Variable:</span>
+                        <code class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded font-mono">GEMINI_API_KEY</code>
+                    </div>
+                </div>
+
+                <div>
+                    <button type="button" id="testApiBtn" onclick="testGeminiConnection()" class="px-4 py-2 text-xs font-semibold bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl shadow-sm transition inline-flex items-center gap-1.5">
+                        <i data-lucide="activity" class="w-3.5 h-3.5 text-blue-600"></i>
+                        <span class="btn-text">Test AI Connection</span>
+                        <span class="btn-spinner hidden" id="testApiSpinner"></span>
+                    </button>
+                    <div id="testResultBox" class="test-result-box hidden mt-3 p-3 text-xs rounded-xl"></div>
+                </div>
+            </div>
+
+            <div class="mt-6 pt-4 border-t border-slate-100 text-xs text-slate-500 leading-relaxed bg-slate-50 p-3.5 rounded-xl">
+                <strong class="text-slate-700 block mb-1">How to configure your API key:</strong>
+                <ol class="list-decimal pl-4 space-y-1">
+                    <li>Generate an API key at <a href="https://aistudio.google.com/" target="_blank" rel="noopener noreferrer" class="text-blue-600 underline">Google AI Studio</a>.</li>
+                    <li>Copy <code>.env.example</code> to <code>.env</code> in the project directory.</li>
+                    <li>Add <code>GEMINI_API_KEY=your_key_here</code> and restart TruthLens.</li>
+                </ol>
+            </div>
+        </div>
+
+        <!-- Card 2: Server & Database Environment -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col justify-between">
+            <div>
+                <h2 class="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
+                    <i data-lucide="hard-drive" class="w-5 h-5 text-blue-600"></i> Server & Data Storage
+                </h2>
+
+                <div class="space-y-3 text-xs">
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-500 font-medium">Local Host & Port:</span>
+                        <code class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded font-mono">{{ host }}:{{ port }}</code>
+                    </div>
+
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-500 font-medium">Port Reservation:</span>
+                        <span class="bg-blue-100 text-blue-800 font-semibold px-2 py-0.5 rounded text-[11px]">Port 8765 Exclusively</span>
+                    </div>
+
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-500 font-medium">Database Engine:</span>
+                        <span class="text-slate-700 font-medium">SQLite3 (Relational Embedded)</span>
+                    </div>
+
+                    <div class="flex justify-between items-start gap-2">
+                        <span class="text-slate-500 font-medium shrink-0">Database Path:</span>
+                        <code class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded font-mono text-[11px] break-all text-right">{{ db_path }}</code>
+                    </div>
+
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-500 font-medium">Database Health:</span>
+                        {% if db_health.healthy %}
+                            <span class="bg-green-100 text-green-800 font-semibold px-2.5 py-0.5 rounded-full">Healthy ({{ db_health.size_kb }} KB)</span>
+                        {% else %}
+                            <span class="bg-red-100 text-red-800 font-semibold px-2.5 py-0.5 rounded-full">Needs Initialization</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-500 font-medium">Active Database Tables:</span>
+                        <span class="text-slate-700 font-medium">{{ db_health.table_count }} tables verified</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-6 pt-4 border-t border-slate-100 text-xs text-slate-500 bg-slate-50 p-3.5 rounded-xl">
+                <p>TruthLens adheres strictly to port isolation on <strong>8765</strong>. If occupied, the double-click Windows launcher cleanly halts and provides troubleshooting guidance.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Privacy & Security Policy -->
+    <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+        <h2 class="text-base font-bold text-slate-900 mb-3 flex items-center gap-2">
+            <i data-lucide="shield" class="w-5 h-5 text-blue-600"></i> Privacy, Security & Data Retention
+        </h2>
+        <ul class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-slate-600 leading-relaxed">
+            <li class="bg-slate-50/60 p-3.5 rounded-xl border border-slate-100">
+                <strong class="text-slate-800 block mb-1">Zero Secret Leakage:</strong>
+                API keys, server tokens, and credentials are never stored in the database, passed to client JavaScript, or exposed in HTML.
+            </li>
+            <li class="bg-slate-50/60 p-3.5 rounded-xl border border-slate-100">
+                <strong class="text-slate-800 block mb-1">Local-First Storage:</strong>
+                Analysis metadata is stored strictly in your local <code>storage/truthlens.db</code> file. No telemetry is collected.
+            </li>
+            <li class="bg-slate-50/60 p-3.5 rounded-xl border border-slate-100">
+                <strong class="text-slate-800 block mb-1">User Deletion Control:</strong>
+                You can delete any report at any time from the History page or via the Delete button on the report view.
+            </li>
+            <li class="bg-slate-50/60 p-3.5 rounded-xl border border-slate-100">
+                <strong class="text-slate-800 block mb-1">SSRF & Network Protections:</strong>
+                Private IP ranges (127.0.0.1, 10.0.0.0/8, 192.168.0.0/16, etc.) and metadata addresses are strictly blocked from URL analysis.
+            </li>
+        </ul>
+    </div>
+</div>
+{% endblock %}

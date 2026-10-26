@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ analysis.title }} — TruthLens Dashboard</title>
+    <!-- Tailwind CSS for modern structure and fast styles -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons for clean visual anchors -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @media print {
+            nav, .action-toolbar, #analyzeModal, #deleteModal, .no-print {
+                display: none !important;
+            }
+            body {
+                background-color: #ffffff !important;
+                padding-bottom: 0 !important;
+            }
+            main {
+                max-width: 100% !important;
+                margin-top: 0 !important;
+                padding: 0 !important;
+            }
+            .shadow-sm {
+                box-shadow: none !important;
+            }
+        }
+    </style>
+</head>
+<body class="bg-[#F8FAFC] font-sans text-slate-800 antialiased min-h-screen pb-12">
+
+    <!-- Top Navigation Bar -->
+    <nav class="bg-white border-b border-slate-200 px-6 py-4 flex justify-between items-center sticky top-0 z-50 shadow-sm">
+        <a href="{{ url_for('index') }}" class="flex items-center gap-2 hover:opacity-90 transition">
+            <i data-lucide="shield-check" class="text-blue-600 w-7 h-7"></i>
+            <span class="text-xl font-bold tracking-tight text-slate-900">Truth<span class="text-blue-600">Lens</span></span>
+        </a>
+        <div class="flex items-center gap-4 sm:gap-6 text-sm font-medium text-slate-600">
+            <a href="{{ url_for('index') }}" class="text-blue-600 border-b-2 border-blue-600 pb-1 font-semibold flex items-center gap-1.5">
+                <i data-lucide="sparkles" class="w-4 h-4"></i> <span class="hidden sm:inline">Analyze Story</span><span class="sm:hidden">Analyze</span>
+            </a>
+            <a href="{{ url_for('dashboard') }}" class="hover:text-slate-900 transition flex items-center gap-1.5">
+                <i data-lucide="layout-dashboard" class="w-4 h-4"></i> <span>Dashboard</span>
+            </a>
+            <a href="{{ url_for('history_page') }}" class="hover:text-slate-900 transition flex items-center gap-1.5">
+                <i data-lucide="history" class="w-4 h-4"></i> <span>History</span>
+            </a>
+            <a href="{{ url_for('settings') }}" class="hover:text-slate-900 transition flex items-center gap-1.5">
+                <i data-lucide="settings" class="w-4 h-4"></i> <span>Settings</span>
+            </a>
+        </div>
+        <div class="text-xs font-mono bg-slate-100 text-slate-600 px-2.5 py-1 rounded">Port 8765</div>
+    </nav>
+
+    <!-- Main Content Container -->
+    <main class="max-w-6xl mx-auto mt-6 px-4 space-y-6">
+
+        <!-- Action Toolbar -->
+        <div class="flex justify-between items-center action-toolbar">
+            <a href="{{ url_for('history_page') }}" class="flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-slate-900 transition bg-white px-3 py-2 rounded-lg border border-slate-200 shadow-sm">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i> Back to History
+            </a>
+            <div class="flex gap-2">
+                <button type="button" onclick="openAnalyzeModal()" class="flex items-center gap-1.5 text-xs font-medium bg-blue-600 text-white shadow-sm px-3 py-2 rounded-lg hover:bg-blue-700 transition">
+                    <i data-lucide="plus" class="w-3.5 h-3.5"></i> New Analysis
+                </button>
+                <button type="button" onclick="window.print()" class="flex items-center gap-1.5 text-xs font-medium bg-white border border-slate-200 shadow-sm px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-50 transition">
+                    <i data-lucide="printer" class="w-3.5 h-3.5"></i> Print / PDF
+                </button>
+                <button type="button" onclick="exportAnalysisJson('{{ analysis.id }}')" class="flex items-center gap-1.5 text-xs font-medium bg-white border border-slate-200 shadow-sm px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-50 transition">
+                    <i data-lucide="code" class="w-3.5 h-3.5"></i> Export JSON
+                </button>
+                <button type="button" onclick="confirmDeleteReport('{{ analysis.id }}', '{{ analysis.title|replace('\'', '\\\'') }}')" class="flex items-center gap-1.5 text-xs font-medium bg-red-50 border border-red-200 text-red-600 px-3 py-2 rounded-lg hover:bg-red-100 transition">
+                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Delete
+                </button>
+            </div>
+        </div>
+
+        <!-- NEW 2-COLUMN HEADER: Article Details & Immediate High-Level Verdict -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Left Side: Article Information -->
+            <div class="lg:col-span-2 bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col justify-between">
+                <div>
+                    <div class="flex flex-wrap gap-2 items-center text-xs mb-3">
+                        <span class="bg-blue-50 text-blue-700 font-semibold px-2.5 py-1 rounded-full uppercase tracking-wider">
+                            {{ analysis.language or 'English' }}
+                        </span>
+
+                        {% if analysis.analysis_mode == 'ai_assisted' %}
+                            <span class="bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-full font-medium flex items-center gap-1">
+                                <i data-lucide="sparkles" class="w-3 h-3"></i> AI-Assisted Analysis
+                            </span>
+                        {% else %}
+                            <span class="bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full font-medium flex items-center gap-1">
+                                <i data-lucide="wifi-off" class="w-3 h-3"></i> Local Text Analysis (Offline)
+                            </span>
+                        {% endif %}
+
+                        <span class="text-slate-400 font-medium">|</span>
+                        <span class="text-slate-500">
+                            Publisher: <strong class="text-slate-700">{{ analysis.publisher or "Identified in source" }}</strong>
+                        </span>
+
+                        {% if analysis.publish_date %}
+                            <span class="text-slate-400 font-medium">|</span>
+                            <span class="text-slate-500">Date: <strong class="text-slate-700">{{ analysis.publish_date }}</strong></span>
+                        {% endif %}
+                    </div>
+
+                    <h1 class="text-2xl font-bold text-slate-900 leading-tight mb-2">
+                        {{ analysis.title }}
+                    </h1>
+
+                    {% if analysis.source_type == 'url' and analysis.source_url %}
+                        <a href="{{ analysis.source_url }}" target="_blank" rel="noopener noreferrer" class="text-xs text-blue-600 hover:underline inline-flex items-center gap-1 break-all mb-4">
+                            {{ analysis.source_url }} <i data-lucide="external-link" class="w-3 h-3"></i>
+                        </a>
+                    {% else %}
+                        <span class="text-xs text-slate-500 inline-flex items-center gap-1 mb-4">
+                            <i data-lucide="file-text" class="w-3 h-3"></i> Source: Pasted Article Content
+                        </span>
+                    {% endif %}
+                </div>
+
+                <div class="border-t border-slate-100 pt-4 mt-2">
+                    <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">Plain-English Summary</span>
+                    <p class="text-sm text-slate-600 leading-relaxed">
+                        {{ analysis.summary or "Summary overview generated from extracted source sentences." }}
+                    </p>
+                </div>
+            </div>
+
+            <!-- Right Side: Redesigned Instant Verdict Box (Dynamic Styling) -->
+            {% set overall = (analysis.overall_verdict or "Important claims remain unverified")|lower %}
+            {% if 'contradict' in overall %}
+                <div class="bg-red-50 border border-red-200 rounded-2xl p-6 shadow-sm flex flex-col justify-between items-center text-center">
+                    <div class="w-full">
+                        <span class="text-xs font-bold text-red-700 uppercase tracking-widest block mb-4">Analysis Verdict Status</span>
+                        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-100 text-red-600 mb-3 shadow-inner">
+                            <i data-lucide="x-circle" class="w-8 h-8"></i>
+                        </div>
+                        <h2 class="text-xl font-bold text-red-900 mb-2">Claims Contradicted By Evidence</h2>
+                        <p class="text-xs text-red-700 max-w-xs mx-auto leading-relaxed">
+                            The core assertions examined are contradicted by older archival evidence or primary documentation.
+                        </p>
+                    </div>
+                    <div class="w-full bg-white/60 border border-red-200/60 rounded-xl p-3 mt-4 text-left">
+                        <span class="text-[10px] font-bold text-red-800 uppercase tracking-wider block mb-1">Recommended Action</span>
+                        <p class="text-xs text-red-900">Do not circulate without verifying the original dates and official institutional archives.</p>
+                    </div>
+                </div>
+            {% elif 'support' in overall and 'partially' not in overall and 'not' not in overall and 'un' not in overall %}
+                <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-6 shadow-sm flex flex-col justify-between items-center text-center">
+                    <div class="w-full">
+                        <span class="text-xs font-bold text-emerald-700 uppercase tracking-widest block mb-4">Analysis Verdict Status</span>
+                        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 mb-3 shadow-inner">
+                            <i data-lucide="check-circle-2" class="w-8 h-8"></i>
+                        </div>
+                        <h2 class="text-xl font-bold text-emerald-900 mb-2">Claims Supported By Evidence</h2>
+                        <p class="text-xs text-emerald-700 max-w-xs mx-auto leading-relaxed">
+                            Available reference records and corroborated reporting support the primary factual statements evaluated.
+                        </p>
+                    </div>
+                    <div class="w-full bg-white/60 border border-emerald-200/60 rounded-xl p-3 mt-4 text-left">
+                        <span class="text-[10px] font-bold text-emerald-800 uppercase tracking-wider block mb-1">Recommended Action</span>
+                        <p class="text-xs text-emerald-900">Compare coverage across other reliable newsrooms to maintain balanced perspective.</p>
+                    </div>
+                </div>
+            {% elif 'mislead' in overall or 'partially' in overall or 'mix' in overall %}
+                <div class="bg-amber-50 border border-amber-200 rounded-2xl p-6 shadow-sm flex flex-col justify-between items-center text-center">
+                    <div class="w-full">
+                        <span class="text-xs font-bold text-amber-700 uppercase tracking-widest block mb-4">Analysis Verdict Status</span>
+                        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-amber-100 text-amber-600 mb-3 shadow-inner">
+                            <i data-lucide="help-circle" class="w-8 h-8"></i>
+                        </div>
+                        <h2 class="text-xl font-bold text-amber-900 mb-2">Potentially Misleading Content</h2>
+                        <p class="text-xs text-amber-700 max-w-xs mx-auto leading-relaxed">
+                            Key statements omit important context, merge older events with recent dates, or present one-sided viewpoints.
+                        </p>
+                    </div>
+                    <div class="w-full bg-white/60 border border-amber-200/60 rounded-xl p-3 mt-4 text-left">
+                        <span class="text-[10px] font-bold text-amber-800 uppercase tracking-wider block mb-1">Recommended Action</span>
+                        <p class="text-xs text-amber-900">Inspect the complete event timeline and official notices before forming conclusions.</p>
+                    </div>
+                </div>
+            {% else %}
+                <!-- Default Amber Unverified Card (Exact match to User Template) -->
+                <div class="bg-amber-50 border border-amber-200 rounded-2xl p-6 shadow-sm flex flex-col justify-between items-center text-center">
+                    <div class="w-full">
+                        <span class="text-xs font-bold text-amber-700 uppercase tracking-widest block mb-4">Analysis Verdict Status</span>
+                        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-amber-100 text-amber-600 mb-3 shadow-inner">
+                            <i data-lucide="alert-triangle" class="w-8 h-8"></i>
+                        </div>
+                        <h2 class="text-xl font-bold text-amber-900 mb-2">Important Claims Unverified</h2>
+                        <p class="text-xs text-amber-700 max-w-xs mx-auto leading-relaxed">
+                            There is currently not enough independently verified evidence to confidently authenticate the core assertions of this article.
+                        </p>
+                    </div>
+                    <div class="w-full bg-white/60 border border-amber-200/60 rounded-xl p-3 mt-4 text-left">
+                        <span class="text-[10px] font-bold text-amber-800 uppercase tracking-wider block mb-1">Recommended Action</span>
+                        <p class="text-xs text-amber-900">Compare coverage across independent news organizations with diverse editorial perspectives.</p>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- UPGRADED SECTION 2: Colored Dashboard Grid with Icons -->
+        {% set claims = analysis.claims or analysis.factual_claims or [] %}
+        {% set total_c = claims|length %}
+        {% set ns = namespace(contradicted=0, misleading=0, supported=0, unverified=0) %}
+        {% for c in claims %}
+            {% set v = (c.verdict or c.verification_status or '')|lower %}
+            {% if 'contradict' in v %}
+                {% set ns.contradicted = ns.contradicted + 1 %}
+            {% elif 'mislead' in v or 'partially' in v or 'mix' in v %}
+                {% set ns.misleading = ns.misleading + 1 %}
+            {% elif 'support' in v and 'partially' not in v %}
+                {% set ns.supported = ns.supported + 1 %}
+            {% else %}
+                {% set ns.unverified = ns.unverified + 1 %}
+            {% endif %}
+        {% endfor %}
+
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+            <div class="mb-4">
+                <h3 class="text-lg font-bold text-slate-900">Quick Results Dashboard</h3>
+                <p class="text-xs text-slate-500">Real verified counts derived directly from extracted statements.</p>
+            </div>
+            
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+                <!-- Total Claims -->
+                <div class="bg-slate-50 border border-slate-200/60 rounded-xl p-4 flex flex-col justify-between shadow-sm">
+                    <div class="flex justify-between items-start text-slate-500">
+                        <span class="text-xs font-semibold leading-tight">Total Factual Claims</span>
+                        <i data-lucide="clipboard-list" class="w-4 h-4"></i>
+                    </div>
+                    <span class="text-3xl font-black text-slate-800 mt-2">{{ total_c }}</span>
+                </div>
+                <!-- Contradicted -->
+                <div class="bg-red-50/60 border border-red-100 rounded-xl p-4 flex flex-col justify-between shadow-sm">
+                    <div class="flex justify-between items-start text-red-600">
+                        <span class="text-xs font-semibold leading-tight">Contradicted By Evidence</span>
+                        <i data-lucide="x-circle" class="w-4 h-4"></i>
+                    </div>
+                    <span class="text-3xl font-black text-red-600 mt-2">{{ ns.contradicted }}</span>
+                </div>
+                <!-- Misleading -->
+                <div class="bg-amber-50/60 border border-amber-100 rounded-xl p-4 flex flex-col justify-between shadow-sm">
+                    <div class="flex justify-between items-start text-amber-600">
+                        <span class="text-xs font-semibold leading-tight">Misleading / Lacks Context</span>
+                        <i data-lucide="help-circle" class="w-4 h-4"></i>
+                    </div>
+                    <span class="text-3xl font-black text-amber-600 mt-2">{{ ns.misleading }}</span>
+                </div>
+                <!-- Supported -->
+                <div class="bg-green-50/60 border border-green-100 rounded-xl p-4 flex flex-col justify-between shadow-sm">
+                    <div class="flex justify-between items-start text-green-600">
+                        <span class="text-xs font-semibold leading-tight">Supported By Evidence</span>
+                        <i data-lucide="check-circle-2" class="w-4 h-4"></i>
+                    </div>
+                    <span class="text-3xl font-black text-green-600 mt-2">{{ ns.supported }}</span>
+                </div>
+                <!-- Not Yet Verified -->
+                <div class="bg-blue-50/60 border border-blue-100 rounded-xl p-4 flex flex-col justify-between shadow-sm col-span-2 md:col-span-1">
+                    <div class="flex justify-between items-start text-blue-600">
+                        <span class="text-xs font-semibold leading-tight">Not Yet Verified</span>
+                        <i data-lucide="clock" class="w-4 h-4"></i>
+                    </div>
+                    <span class="text-3xl font-black text-blue-600 mt-2">{{ ns.unverified }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3-TAB VIEW: Replaces Scrolling Fatigue with Clean Organization -->
+        <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+            <!-- Dynamic Tab Header -->
+            <div class="flex border-b border-slate-200 bg-slate-50 text-sm font-medium text-slate-500">
+                <button onclick="switchTab('claims')" id="btn-claims" class="flex-1 py-4 px-6 text-center border-b-2 border-blue-600 text-blue-600 bg-white font-bold transition flex items-center justify-center gap-2">
+                    <i data-lucide="file-text" class="w-4 h-4"></i> Claim Breakdown
+                </button>
+                <button onclick="switchTab('bias')" id="btn-bias" class="flex-1 py-4 px-6 text-center border-b-2 border-transparent hover:text-slate-800 transition flex items-center justify-center gap-2">
+                    <i data-lucide="scale" class="w-4 h-4"></i> Bias & Style Analysis
+                </button>
+                <button onclick="switchTab('source')" id="btn-source" class="flex-1 py-4 px-6 text-center border-b-2 border-transparent hover:text-slate-800 transition flex items-center justify-center gap-2">
+                    <i data-lucide="building-2" class="w-4 h-4"></i> Source & Evidence Profile
+                </button>
+            </div>
+
+            <!-- Tab Content Window -->
+            <div class="p-6">
+                
+                <!-- Tab 1: Claims Breakdown -->
+                <div id="tab-claims" class="space-y-6">
+                    {% if claims and claims|length > 0 %}
+                        {% for claim in claims %}
+                            {% set cv = (claim.verdict or claim.verification_status or "Not yet verified") %}
+                            {% set cv_lower = cv|lower %}
+                            <div class="{% if not loop.first %}border-t border-slate-100 pt-6{% endif %}">
+                                <div class="flex justify-between items-center border-b border-slate-100 pb-3 mb-4">
+                                    <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                                        Claim #{{ loop.index }} Analysis
+                                    </span>
+
+                                    {% if 'contradict' in cv_lower %}
+                                        <span class="bg-red-100 text-red-800 text-xs font-semibold px-2.5 py-1 rounded-full uppercase">
+                                            Contradicted By Evidence
+                                        </span>
+                                    {% elif 'mislead' in cv_lower or 'partially' in cv_lower or 'mix' in cv_lower %}
+                                        <span class="bg-amber-100 text-amber-800 text-xs font-semibold px-2.5 py-1 rounded-full uppercase">
+                                            Misleading or Missing Context
+                                        </span>
+                                    {% elif 'support' in cv_lower and 'partially' not in cv_lower %}
+                                        <span class="bg-green-100 text-green-800 text-xs font-semibold px-2.5 py-1 rounded-full uppercase">
+                                            Supported By Evidence
+                                        </span>
+                                    {% else %}
+                                        <span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-1 rounded-full uppercase">
+                                            Not Yet Verified
+                                        </span>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="space-y-4">
+                                    <div>
+                                        <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">What is being claimed:</label>
+                                        <p class="text-base font-semibold text-slate-900">{{ claim.claim or claim.claim_text }}</p>
+                                    </div>
+
+                                    <div class="bg-amber-50/50 border-l-4 border-amber-400 rounded-r-xl p-4">
+                                        <label class="text-[10px] font-bold text-amber-700 uppercase tracking-wider block mb-1">Exact Passage In Article</label>
+                                        <p class="text-sm italic text-slate-700">"{{ claim.source_passage or claim.quote_snippet or claim.claim or claim.claim_text }}"</p>
+                                    </div>
+
+                                    <div>
+                                        <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Explanation of Verdict:</label>
+                                        <p class="text-sm text-slate-600 leading-relaxed">
+                                            {{ claim.verdict_explanation or claim.simple_explanation or claim.verification_notes or "Evaluated based on reported statements and chronological evidence." }}
+                                        </p>
+                                    </div>
+
+                                    {% if claim.evidence_sources and claim.evidence_sources|length > 0 %}
+                                        <div class="bg-slate-50 border border-slate-200/60 rounded-xl p-3 text-xs">
+                                            <span class="font-bold text-slate-700 uppercase tracking-wider block mb-1.5">Supporting Citations & Evidence:</span>
+                                            <ul class="space-y-1.5 text-slate-600">
+                                                {% for src in claim.evidence_sources %}
+                                                    <li class="flex items-start gap-1.5">
+                                                        <i data-lucide="check" class="w-3.5 h-3.5 text-blue-600 shrink-0 mt-0.5"></i>
+                                                        <div>
+                                                            {% if src.url %}
+                                                                <a href="{{ src.url }}" target="_blank" rel="noopener noreferrer" class="text-blue-600 font-medium hover:underline">
+                                                                    {{ src.title or src.source or "Source Document" }}
+                                                                </a>
+                                                            {% else %}
+                                                                <strong class="text-slate-700">{{ src.title or src.source or "Investigation Record" }}</strong>
+                                                            {% endif %}
+                                                            {% if src.snippet %}
+                                                                <span class="text-slate-500">— {{ src.snippet }}</span>
+                                                            {% endif %}
+                                                        </div>
+                                                    </li>
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                    {% endif %}
+
+                                    <div class="flex flex-wrap gap-4 items-center bg-slate-50/50 border border-slate-100 rounded-xl p-3 text-xs">
+                                        <div class="flex items-center gap-1.5">
+                                            <span class="font-medium text-slate-500">Evidence Quality:</span>
+                                            {% set eq = (claim.evidence_quality or "Insufficient")|lower %}
+                                            {% if 'high' in eq %}
+                                                <span class="bg-green-100 text-green-700 font-semibold px-2 py-0.5 rounded">High (Corroborated)</span>
+                                            {% elif 'moderate' in eq or 'medium' in eq %}
+                                                <span class="bg-amber-100 text-amber-700 font-semibold px-2 py-0.5 rounded">Moderate</span>
+                                            {% else %}
+                                                <span class="bg-red-100 text-red-700 font-semibold px-2 py-0.5 rounded">Insufficient</span>
+                                            {% endif %}
+                                        </div>
+                                        <div class="flex items-center gap-1.5">
+                                            <span class="font-medium text-slate-500">Limitations:</span>
+                                            <span class="text-slate-700 font-medium">{{ claim.limitations or claim.claim_limitations or "No matching open-access reference entries found." }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-10 text-slate-500">
+                            <i data-lucide="info" class="w-10 h-10 mx-auto mb-2 text-slate-400"></i>
+                            <h4 class="font-bold text-slate-700 text-base">No Verifiable Claims Identified</h4>
+                            <p class="text-xs text-slate-500 max-w-sm mx-auto mt-1">The supplied content does not contain clear empirical or quantitative claims requiring external cross-referencing.</p>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Tab 2: Bias & Style -->
+                {% set techs = analysis.persuasive_techniques or analysis.rhetorical_techniques or [] %}
+                <div id="tab-bias" class="hidden space-y-6">
+                    <div class="border-b border-slate-100 pb-3">
+                        <h4 class="font-bold text-slate-900">Persuasive Writing & Manipulation Analysis</h4>
+                        <p class="text-xs text-slate-500">Identifies stylistic devices such as exaggerated language, emotional appeals, or biased phrasing.</p>
+                    </div>
+
+                    {% if techs and techs|length > 0 %}
+                        <div class="space-y-6">
+                            {% for tech in techs %}
+                                <div class="space-y-3 bg-slate-50/50 border border-slate-100 rounded-xl p-4">
+                                    <div class="flex items-center gap-2 text-blue-700 font-semibold text-sm">
+                                        <i data-lucide="alert-circle" class="w-4 h-4"></i> {{ tech.technique or tech.technique_name }}
+                                    </div>
+                                    <p class="text-sm text-slate-600 leading-relaxed">{{ tech.explanation }}</p>
+                                    
+                                    {% if tech.quote or tech.quote_snippet %}
+                                        <div class="bg-slate-50 border-l-4 border-slate-300 rounded-r-lg p-4">
+                                            <p class="text-sm italic text-slate-600">"{{ tech.quote or tech.quote_snippet }}"</p>
+                                        </div>
+                                    {% endif %}
+
+                                    {% if tech.likely_effect %}
+                                        <p class="text-xs text-slate-500"><strong class="text-slate-700">Likely Effect:</strong> {{ tech.likely_effect }}</p>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <!-- Neutral presentation (Exact match to User Template) -->
+                        <div class="space-y-4">
+                            <div class="flex items-center gap-2 text-emerald-700 font-semibold text-sm">
+                                <i data-lucide="check-circle" class="w-4 h-4"></i> Neutral Presentation Detected
+                            </div>
+                            <p class="text-sm text-slate-600">No clear evidence of overt propaganda or manipulation techniques was found in the analyzed text.</p>
+                            
+                            <div class="bg-slate-50 border-l-4 border-slate-300 rounded-r-lg p-4">
+                                <p class="text-sm italic text-slate-600">"{{ (analysis.summary or analysis.title)[:140] }}..."</p>
+                            </div>
+                            <p class="text-xs text-slate-500"><strong class="text-slate-700">Likely Effect:</strong> Presents information in a straightforward reportorial style.</p>
+                        </div>
+                    {% endif %}
+
+                    <!-- Missing Context & Framing Block -->
+                    <div class="mt-4 pt-4 border-t border-slate-100">
+                        <h5 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Missing Context & Framing Considerations</h5>
+                        <p class="text-sm text-slate-600 leading-relaxed">
+                            {{ analysis.missing_context or "No critical contextual omissions were identified that alter the primary findings." }}
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Tab 3: Source Details -->
+                <div id="tab-source" class="hidden space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-slate-50 border border-slate-200/60 rounded-xl p-5">
+                            <h4 class="font-bold text-slate-900 border-b border-slate-200 pb-2 mb-3 flex items-center gap-2 text-sm">
+                                <i data-lucide="link" class="w-4 h-4 text-blue-500"></i> Source Reliability
+                            </h4>
+                            <ul class="text-xs space-y-2.5 text-slate-600">
+                                <li><strong class="text-slate-700">Publisher:</strong> {{ analysis.publisher or "Identified in source" }}</li>
+                                <li>
+                                    <strong class="text-slate-700">Source:</strong> 
+                                    {% if analysis.source_type == 'url' and analysis.source_url %}
+                                        <a href="{{ analysis.source_url }}" target="_blank" rel="noopener noreferrer" class="text-blue-600 underline">{{ analysis.source_url }}</a>
+                                    {% else %}
+                                        Pasted News / Social Media Content
+                                    {% endif %}
+                                </li>
+                                <li>
+                                    <strong class="text-slate-700">Corroboration:</strong> 
+                                    {% if 'contradict' in (analysis.overall_verdict|lower) %}
+                                        Claims examined are contradicted by older archival evidence as reported.
+                                    {% else %}
+                                        Material requires independent primary verification.
+                                    {% endif %}
+                                </li>
+                                <li>
+                                    <strong class="text-slate-700">Verification Mode:</strong> 
+                                    {% if analysis.analysis_mode == 'ai_assisted' %}
+                                        AI-Assisted Language Analysis
+                                    {% else %}
+                                        Local Text Analysis (Offline)
+                                    {% endif %}
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div class="bg-slate-50 border border-slate-200/60 rounded-xl p-5">
+                            <h4 class="font-bold text-slate-900 border-b border-slate-200 pb-2 mb-3 flex items-center gap-2 text-sm">
+                                <i data-lucide="bar-chart-3" class="w-4 h-4 text-blue-500"></i> Overall Accuracy Score
+                            </h4>
+                            {% set acc = analysis.accuracy_score_info or {} %}
+                            {% if acc.score_available and acc.score_percentage is not none %}
+                                <div class="bg-emerald-50 border border-emerald-100 rounded-lg p-3 text-xs text-emerald-800">
+                                    <span class="text-2xl font-black text-emerald-900 block mb-1">{{ acc.score_percentage }}%</span>
+                                    {{ acc.formula_explanation }}
+                                </div>
+                            {% else %}
+                                <!-- Exact match to user's HTML template -->
+                                <div class="flex items-start gap-2.5 bg-blue-50 border border-blue-100 rounded-lg p-3 text-xs text-blue-800">
+                                    <i data-lucide="info" class="w-4 h-4 shrink-0 mt-0.5"></i>
+                                    <div>
+                                        <span class="font-bold block mb-0.5">Accuracy score unavailable</span>
+                                        There is not enough independently verified evidence to calculate a meaningful percentage. TruthLens refuses to display an invented score.
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Recommended Steps Checklist -->
+                    <div class="bg-slate-50 border border-slate-200/60 rounded-xl p-5">
+                        <h4 class="font-bold text-slate-900 border-b border-slate-200 pb-2 mb-3 flex items-center gap-2 text-sm">
+                            <i data-lucide="check-square" class="w-4 h-4 text-blue-500"></i> Recommended Verification Steps for Readers
+                        </h4>
+                        <ol class="list-decimal pl-5 text-xs text-slate-600 space-y-1.5">
+                            {% for step in (analysis.reader_next_steps or analysis.recommended_verification_steps or ["Check primary institutional registries or official gazettes for stated figures.", "Compare coverage across independent news organizations with diverse editorial perspectives.", "Verify whether direct quotes originate from verified transcripts or third-party interpretations."]) %}
+                                <li>{{ step }}</li>
+                            {% endfor %}
+                        </ol>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal 1: Analyze New Story Modal -->
+    <div id="analyzeModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-xl border border-slate-200 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center pb-4 border-b border-slate-100">
+                <div class="flex items-center gap-2">
+                    <i data-lucide="sparkles" class="text-blue-600 w-5 h-5"></i>
+                    <h3 class="text-lg font-bold text-slate-900">Analyze a News Story</h3>
+                </div>
+                <button type="button" onclick="closeAnalyzeModal()" class="text-slate-400 hover:text-slate-600 transition">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <form id="modalAnalysisForm" onsubmit="handleModalAnalysisSubmit(event)" class="mt-4 space-y-4">
+                <!-- Source Type Tabs -->
+                <div class="flex bg-slate-100 p-1 rounded-xl text-xs font-semibold">
+                    <button type="button" id="modalTabTextBtn" onclick="switchModalInputTab('text')" class="flex-1 py-2 rounded-lg bg-white shadow-sm text-slate-800 transition flex items-center justify-center gap-1.5">
+                        <i data-lucide="file-text" class="w-3.5 h-3.5"></i> Paste Article Text
+                    </button>
+                    <button type="button" id="modalTabUrlBtn" onclick="switchModalInputTab('url')" class="flex-1 py-2 rounded-lg text-slate-500 hover:text-slate-800 transition flex items-center justify-center gap-1.5">
+                        <i data-lucide="link" class="w-3.5 h-3.5"></i> News Article URL
+                    </button>
+                </div>
+                <input type="hidden" name="source_type" id="modalSourceType" value="text">
+
+                <!-- Title Input -->
+                <div>
+                    <label class="text-xs font-semibold text-slate-600 block mb-1">Headline or Title (Optional)</label>
+                    <input type="text" id="modalCustomTitle" name="custom_title" class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="e.g. Breaking news on health regulations...">
+                </div>
+
+                <!-- Text Area Section -->
+                <div id="modalTextSection">
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="text-xs font-semibold text-slate-600">Full Article Text <span class="text-red-500">*</span></label>
+                        <span id="modalCharCounter" class="text-[11px] text-slate-400 font-mono">0 / 25,000 characters</span>
+                    </div>
+                    <textarea id="modalPastedText" name="content_text" rows="6" oninput="updateModalCharCount()" class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-sans" placeholder="Paste the news story, viral message, or blog excerpt here..."></textarea>
+                </div>
+
+                <!-- URL Section -->
+                <div id="modalUrlSection" class="hidden">
+                    <label class="text-xs font-semibold text-slate-600 block mb-1">Web Article URL <span class="text-red-500">*</span></label>
+                    <input type="url" id="modalArticleUrl" name="content_url" class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="https://example.com/news/article.html">
+                    <p class="text-[11px] text-slate-400 mt-1">If the article is behind a paywall or login, switch to "Paste Article Text" for best results.</p>
+                </div>
+
+                <!-- Language Selection -->
+                <div>
+                    <label class="text-xs font-semibold text-slate-600 block mb-1">Language</label>
+                    <select id="modalLanguageSelect" name="selected_language" class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                        <option value="auto">Auto-Detect Language</option>
+                        <option value="en">English</option>
+                        <option value="hi">Hindi (हिंदी)</option>
+                        <option value="te">Telugu (తెలుగు)</option>
+                        <option value="ta">Tamil (தமிழ்)</option>
+                        <option value="kn">Kannada (ಕನ್ನಡ)</option>
+                    </select>
+                </div>
+
+                <!-- Progress State -->
+                <div id="modalProgressBox" class="hidden bg-slate-50 border border-slate-200 rounded-xl p-3">
+                    <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden mb-2">
+                        <div id="modalProgressBar" class="bg-blue-600 h-2 rounded-full transition-all duration-300" style="width: 15%"></div>
+                    </div>
+                    <p id="modalProgressStatus" class="text-xs text-slate-600 text-center font-medium">Extracting content and analyzing factual statements...</p>
+                </div>
+
+                <!-- Error Message -->
+                <div id="modalErrorBox" class="hidden p-3 bg-red-50 border border-red-200 rounded-lg text-xs text-red-700"></div>
+
+                <!-- Footer Buttons -->
+                <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
+                    <button type="button" onclick="closeAnalyzeModal()" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-800 transition">
+                        Cancel
+                    </button>
+                    <button type="submit" id="modalSubmitBtn" class="px-5 py-2 text-xs font-semibold bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-1.5">
+                        <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i> Start Analysis
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal 2: Deletion Confirmation Modal -->
+    <div id="deleteModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200 text-center">
+            <div class="w-12 h-12 rounded-full bg-red-100 text-red-600 flex items-center justify-center mx-auto mb-3">
+                <i data-lucide="alert-triangle" class="w-6 h-6"></i>
+            </div>
+            <h3 class="text-base font-bold text-slate-900 mb-1">Delete Analysis Record?</h3>
+            <p id="deleteModalMsg" class="text-xs text-slate-500 mb-5 leading-relaxed">
+                Are you sure you want to delete this analysis report and all associated claims from local SQLite storage? This action cannot be undone.
+            </p>
+            <div class="flex justify-center gap-2">
+                <button type="button" onclick="closeDeleteModal()" class="px-4 py-2 text-xs font-semibold bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition">
+                    Cancel
+                </button>
+                <button type="button" id="confirmDeleteBtn" class="px-4 py-2 text-xs font-semibold bg-red-600 text-white rounded-lg hover:bg-red-700 transition">
+                    Yes, Delete Record
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function switchTab(tabName) {
+            // Hide all tab panes
+            document.getElementById('tab-claims').classList.add('hidden');
+            document.getElementById('tab-bias').classList.add('hidden');
+            document.getElementById('tab-source').classList.add('hidden');
+            
+            // Remove active classes from buttons
+            const buttons = ['btn-claims', 'btn-bias', 'btn-source'];
+            buttons.forEach(id => {
+                const btn = document.getElementById(id);
+                btn.classList.remove('border-blue-600', 'text-blue-600', 'bg-white', 'font-bold');
+                btn.classList.add('border-transparent', 'hover:text-slate-800');
+            });
+
+            // Show selected tab pane
+            document.getElementById('tab-' + tabName).classList.remove('hidden');
+
+            // Set current button to active style
+            const activeBtn = document.getElementById('btn-' + tabName);
+            activeBtn.classList.add('border-blue-600', 'text-blue-600', 'bg-white', 'font-bold');
+            activeBtn.classList.remove('border-transparent', 'hover:text-slate-800');
+        }
+
+        function exportAnalysisJson(analysisId) {
+            window.open('/results/' + analysisId + '?format=json', '_blank');
+        }
+
+        // Modal Logic for Deletion
+        let targetDeleteId = null;
+        function confirmDeleteReport(id, title) {
+            targetDeleteId = id;
+            const modal = document.getElementById('deleteModal');
+            const msg = document.getElementById('deleteModalMsg');
+            const confirmBtn = document.getElementById('confirmDeleteBtn');
+            if (msg) msg.textContent = 'Are you sure you want to delete "' + title + '"? This will permanently remove it from local database storage.';
+            if (confirmBtn) {
+                confirmBtn.onclick = function() {
+                    fetch('/api/history/' + targetDeleteId, { method: 'DELETE' })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.success) {
+                                window.location.href = '/history';
+                            } else {
+                                alert(data.error || 'Failed to delete record.');
+                            }
+                        })
+                        .catch(() => alert('Network error during deletion.'));
+                };
+            }
+            if (modal) modal.classList.remove('hidden');
+        }
+
+        function closeDeleteModal() {
+            const modal = document.getElementById('deleteModal');
+            if (modal) modal.classList.add('hidden');
+            targetDeleteId = null;
+        }
+
+        // Modal Logic for New Story Analysis
+        function openAnalyzeModal() {
+            document.getElementById('analyzeModal').classList.remove('hidden');
+        }
+
+        function closeAnalyzeModal() {
+            document.getElementById('analyzeModal').classList.add('hidden');
+        }
+
+        function switchModalInputTab(mode) {
+            const textSec = document.getElementById('modalTextSection');
+            const urlSec = document.getElementById('modalUrlSection');
+            const tabText = document.getElementById('modalTabTextBtn');
+            const tabUrl = document.getElementById('modalTabUrlBtn');
+            const srcInput = document.getElementById('modalSourceType');
+
+            if (mode === 'url') {
+                textSec.classList.add('hidden');
+                urlSec.classList.remove('hidden');
+                tabUrl.className = "flex-1 py-2 rounded-lg bg-white shadow-sm text-slate-800 transition flex items-center justify-center gap-1.5 font-semibold";
+                tabText.className = "flex-1 py-2 rounded-lg text-slate-500 hover:text-slate-800 transition flex items-center justify-center gap-1.5";
+                srcInput.value = 'url';
+            } else {
+                urlSec.classList.add('hidden');
+                textSec.classList.remove('hidden');
+                tabText.className = "flex-1 py-2 rounded-lg bg-white shadow-sm text-slate-800 transition flex items-center justify-center gap-1.5 font-semibold";
+                tabUrl.className = "flex-1 py-2 rounded-lg text-slate-500 hover:text-slate-800 transition flex items-center justify-center gap-1.5";
+                srcInput.value = 'text';
+            }
+        }
+
+        function updateModalCharCount() {
+            const text = (document.getElementById('modalPastedText') || {}).value || '';
+            const counter = document.getElementById('modalCharCounter');
+            if (counter) counter.textContent = text.length.toLocaleString() + ' / 25,000 characters';
+        }
+
+        async function handleModalAnalysisSubmit(e) {
+            e.preventDefault();
+            const srcType = document.getElementById('modalSourceType').value;
+            const customTitle = document.getElementById('modalCustomTitle').value.trim();
+            const selectedLang = document.getElementById('modalLanguageSelect').value;
+            const progressBox = document.getElementById('modalProgressBox');
+            const progressBar = document.getElementById('modalProgressBar');
+            const progressStatus = document.getElementById('modalProgressStatus');
+            const errorBox = document.getElementById('modalErrorBox');
+            const submitBtn = document.getElementById('modalSubmitBtn');
+
+            let contentInput = '';
+            if (srcType === 'url') {
+                contentInput = document.getElementById('modalArticleUrl').value.trim();
+                if (!contentInput) {
+                    showModalError('Please enter a valid HTTP/HTTPS article URL.');
+                    return;
+                }
+            } else {
+                contentInput = document.getElementById('modalPastedText').value.trim();
+                if (contentInput.length < 30) {
+                    showModalError('Please paste article content containing at least 30 characters.');
+                    return;
+                }
+            }
+
+            errorBox.classList.add('hidden');
+            progressBox.classList.remove('hidden');
+            submitBtn.disabled = true;
+
+            let progress = 20;
+            progressBar.style.width = '20%';
+            progressStatus.textContent = 'Extracting and verifying article text...';
+
+            const timer = setInterval(() => {
+                if (progress < 85) {
+                    progress += 15;
+                    progressBar.style.width = progress + '%';
+                    if (progress >= 50) progressStatus.textContent = 'Evaluating persuasive writing & extracting factual claims...';
+                }
+            }, 500);
+
+            try {
+                const res = await fetch('/api/analyze', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        source_type: srcType,
+                        content_input: contentInput,
+                        custom_title: customTitle,
+                        selected_language: selectedLang
+                    })
+                });
+                clearInterval(timer);
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    progressBar.style.width = '100%';
+                    progressStatus.textContent = 'Analysis complete! Redirecting...';
+                    setTimeout(() => {
+                        window.location.href = data.redirect_url;
+                    }, 400);
+                } else {
+                    progressBox.classList.add('hidden');
+                    submitBtn.disabled = false;
+                    showModalError(data.error || 'Failed to analyze article. Please paste the article text directly.');
+                }
+            } catch (err) {
+                clearInterval(timer);
+                progressBox.classList.add('hidden');
+                submitBtn.disabled = false;
+                showModalError('Connection failed. Make sure TruthLens is running on port 8765.');
+            }
+        }
+
+        function showModalError(msg) {
+            const errorBox = document.getElementById('modalErrorBox');
+            if (errorBox) {
+                errorBox.textContent = msg;
+                errorBox.classList.remove('hidden');
+            } else {
+                alert(msg);
+            }
+        }
+
+        // Initialize Lucide Icons automatically
+        lucide.createIcons();
+    </script>
+</body>
+</html>
