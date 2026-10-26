@@ -130,7 +130,7 @@ TruthLens works out of the box in **Offline Demonstration Mode** even without an
    ```
 2. Open `.env` in any text editor and add your free Google AI Studio key:
    ```env
-   GEMINI_API_KEY=AIzaSyYourActualKeyHere
+   GEMINI_API_KEY=YourActualKeyHere
    GEMINI_MODEL=gemini-1.5-flash
    PORT=8765
    HOST=127.0.0.1
